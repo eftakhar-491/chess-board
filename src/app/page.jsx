@@ -1,18 +1,13 @@
+
 // app/page.js
 'use client';
 
 import ChessBoard from "@/components/ChessBoard";
 
- // Client component since it uses hooks
-
 export default function Home() {
 
-
-
-
-
-  // 
   return (
+
     <div style={{ textAlign: 'center', padding: '20px' }}>
       <h1>Chess Game</h1>
       <input
