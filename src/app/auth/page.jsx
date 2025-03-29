@@ -1,15 +1,17 @@
 'use client';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { FcGoogle } from 'react-icons/fc';
 import { useRouter } from 'next/navigation';
+import { AuthContext } from '@/provider/AuthProvider';
 
 export default function AuthForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState('');
-  // its neeeded
-  const [loading, setLoading] = useState(false)
+  const {user, registerUser , loginUser, googleSignIn, loading} = useContext(AuthContext);
+  console.log(user);
+
    
   // for navigate
   const router = useRouter();
@@ -18,20 +20,23 @@ export default function AuthForm() {
 
  
 
-  // if (user) {
-  //   router.push('/dashboard');
-  //   return null;
-  // }
+  if (user) {
+    router.push('/');
+    return null;
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-
+    // 
     try {
       if (isRegistering) {
-         alert(`register form Email : ${email} and pass : ${password}`)
+        await registerUser(email, password);
+        alert('register sucessfully')
       } else {
-        alert(`sign in form Email : ${email} and pass : ${password}`)
+        const {user} = await loginUser(email, password);
+        console.log(user);
+        alert('login sucessfully')
       }
     } catch (err) {
       setError(err.message);
@@ -40,6 +45,8 @@ export default function AuthForm() {
 
   const handleGoogleSignIn = async () => {
     try {
+      const {user} = await googleSignIn();
+      console.log(user);
        alert("google sign in successfully")
     } catch (err) {
       setError(err.message);
