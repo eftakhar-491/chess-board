@@ -1,5 +1,6 @@
+"use client";
 import { AuthContext } from "@/provider/AuthProvider";
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 
 export default function page() {
   const { user } = useContext(AuthContext);
@@ -10,11 +11,11 @@ export default function page() {
       <h1>Chess Game</h1>
       <input
         value=""
-        // onChange={(e) => setPlayerName(e.target.value)}
+        onChange={(e) => setPlayerName(e.target.value)}
         placeholder="email"
       />
 
-      <button onClick={hangelCreateGame} className="cursor-pointer">
+      <button onClick={"hangelCreateGame"} className="cursor-pointer">
         create game
       </button>
 

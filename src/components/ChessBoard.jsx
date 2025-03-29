@@ -5,30 +5,33 @@ import ChessSquare from "./ChessSquare";
 
 //  initialboard
 const initialBoard = () => {
-  const board = Array(8)
-    .fill()
-    .map(() => Array(8).fill(null));
-  // console.log(board);
+  if (1) {
+    const board = Array(8)
+      .fill()
+      .map(() => Array(8).fill(null));
+    // console.log(board);
 
-  // Set up pawns
-  for (let i = 0; i < 8; i++) {
-    board[1][i] = { type: "pawn", color: "black" };
-    board[6][i] = { type: "pawn", color: "white" };
+    // Set up pawns
+    for (let i = 0; i < 8; i++) {
+      board[1][i] = { type: "pawn", color: "black" };
+      board[6][i] = { type: "pawn", color: "white" };
+    }
+
+    // Set up other pieces
+    const pieces = [
+      ["rook", "knight", "bishop", "queen", "king", "bishop", "knight", "rook"],
+
+      ["rook", "knight", "bishop", "king", "queen", "bishop", "knight", "rook"], // Corrected queen/king positions
+    ];
+
+    for (let i = 0; i < 8; i++) {
+      board[0][i] = { type: pieces[0][i], color: "black" };
+      board[7][i] = { type: pieces[1][i], color: "white" };
+    }
+
+    return board;
+  } else {
   }
-
-  // Set up other pieces
-  const pieces = [
-    ["rook", "knight", "bishop", "queen", "king", "bishop", "knight", "rook"],
-
-    ["rook", "knight", "bishop", "king", "queen", "bishop", "knight", "rook"], // Corrected queen/king positions
-  ];
-
-  for (let i = 0; i < 8; i++) {
-    board[0][i] = { type: pieces[0][i], color: "black" };
-    board[7][i] = { type: pieces[1][i], color: "white" };
-  }
-
-  return board;
 };
 
 const isValidPawnMove = (from, to, board, currentPlayer) => {
@@ -212,28 +215,292 @@ const isValidQueenMove = (from, to, board, currentPlayer) => {
 
   return true;
 };
+// check or checkmate detected ---------------------------------------------
+
+// Helper function to find the king's position
+const findKing = (board, color) => {
+  for (let row = 0; row < 8; row++) {
+    for (let col = 0; col < 8; col++) {
+      const piece = board[row][col];
+      if (piece?.type === "king" && piece.color === color) {
+        return { row, col };
+      }
+    }
+  }
+  throw new Error("King not found on board");
+};
+
+// Check if a square is under attack
+const isSquareUnderAttack = (position, board, currentPlayer) => {
+  const enemyColor = currentPlayer === "white" ? "black" : "white";
+
+  // Check all enemy pieces
+  for (let row = 0; row < 8; row++) {
+    for (let col = 0; col < 8; col++) {
+      const piece = board[row][col];
+      if (!piece || piece.color !== enemyColor) continue;
+
+      const from = { row, col };
+
+      // Special handling for pawn attacks
+      if (piece.type === "pawn") {
+        const dir = enemyColor === "white" ? -1 : 1;
+        if (position.row === row + dir && Math.abs(position.col - col) === 1) {
+          return true;
+        }
+        continue;
+      }
+
+      // Check other pieces using their move validation
+      switch (piece.type) {
+        case "knight":
+          if (isValidKnightMove(from, position, board, enemyColor)) return true;
+          break;
+        case "bishop":
+          if (isValidBishopMove(from, position, board, enemyColor)) return true;
+          break;
+        case "rook":
+          if (isValidRookMove(from, position, board, enemyColor)) return true;
+          break;
+        case "queen":
+          if (isValidQueenMove(from, position, board, enemyColor)) return true;
+          break;
+        case "king":
+          if (
+            Math.abs(row - position.row) <= 1 &&
+            Math.abs(col - position.col) <= 1
+          )
+            return true;
+          break;
+      }
+    }
+  }
+  return false;
+};
+
+// Check if king is in check
+const isKingInCheck = (board, currentPlayer) => {
+  const kingPos = findKing(board, currentPlayer);
+  return isSquareUnderAttack(kingPos, board, currentPlayer);
+};
+
+// Check if checkmate
+const isCheckmate = (board, currentPlayer) => {
+  if (!isKingInCheck(board, currentPlayer)) return false;
+
+  // Check if king can move to any safe square
+  const kingPos = findKing(board, currentPlayer);
+  for (let row = kingPos.row - 1; row <= kingPos.row + 1; row++) {
+    for (let col = kingPos.col - 1; col <= kingPos.col + 1; col++) {
+      if (row < 0 || row > 7 || col < 0 || col > 7) continue;
+      if (row === kingPos.row && col === kingPos.col) continue;
+
+      // Simulate move
+      const tempBoard = JSON.parse(JSON.stringify(board));
+      tempBoard[kingPos.row][kingPos.col] = null;
+      tempBoard[row][col] = { type: "king", color: currentPlayer };
+
+      if (!isSquareUnderAttack({ row, col }, tempBoard, currentPlayer)) {
+        return false;
+      }
+    }
+  }
+
+  // Find all attackers
+  const attackers = [];
+  const enemyColor = currentPlayer === "white" ? "black" : "white";
+  for (let row = 0; row < 8; row++) {
+    for (let col = 0; col < 8; col++) {
+      const piece = board[row][col];
+      if (
+        piece?.color === enemyColor &&
+        isValidMoveForPiece({ row, col }, kingPos, board, enemyColor)
+      ) {
+        attackers.push({ row, col });
+      }
+    }
+  }
+
+  // If multiple attackers, only king can move
+  if (attackers.length > 1) return true;
+
+  // Check if attack can be blocked or captured
+  const attacker = attackers[0];
+  const attackerType = board[attacker.row][attacker.col].type;
+
+  // Can attacker be captured?
+  if (canBeCaptured(attacker, board, currentPlayer)) return false;
+
+  // Can attack path be blocked?
+  if (["rook", "bishop", "queen"].includes(attackerType)) {
+    const path = getAttackPath(kingPos, attacker);
+    for (const square of path) {
+      if (canBeBlocked(square, board, currentPlayer)) return false;
+    }
+  }
+
+  return true;
+};
+
+// Helper functions
+const getAttackPath = (kingPos, attackerPos) => {
+  const path = [];
+  const rowStep = Math.sign(attackerPos.row - kingPos.row);
+  const colStep = Math.sign(attackerPos.col - kingPos.col);
+
+  let currentRow = kingPos.row + rowStep;
+  let currentCol = kingPos.col + colStep;
+
+  while (currentRow !== attackerPos.row || currentCol !== attackerPos.col) {
+    path.push({ row: currentRow, col: currentCol });
+    currentRow += rowStep;
+    currentCol += colStep;
+  }
+  return path;
+};
+
+const canBeCaptured = (target, board, currentPlayer) => {
+  for (let row = 0; row < 8; row++) {
+    for (let col = 0; col < 8; col++) {
+      const piece = board[row][col];
+      if (piece?.color === currentPlayer) {
+        const from = { row, col };
+        if (isValidMoveForPiece(from, target, board, currentPlayer)) {
+          // Simulate the capture and check king safety
+          const tempBoard = JSON.parse(JSON.stringify(board));
+          tempBoard[target.row][target.col] = { ...piece };
+          tempBoard[row][col] = null;
+          if (!isKingInCheck(tempBoard, currentPlayer)) {
+            return true;
+          }
+        }
+      }
+    }
+  }
+  return false;
+};
+
+const canBeBlocked = (blockSquare, board, currentPlayer) => {
+  for (let row = 0; row < 8; row++) {
+    for (let col = 0; col < 8; col++) {
+      const piece = board[row][col];
+      if (piece?.color === currentPlayer && piece.type !== "king") {
+        const from = { row, col };
+        if (isValidMoveForPiece(from, blockSquare, board, currentPlayer)) {
+          // Simulate the block and check king safety
+          const tempBoard = JSON.parse(JSON.stringify(board));
+          tempBoard[blockSquare.row][blockSquare.col] = { ...piece };
+          tempBoard[row][col] = null;
+          if (!isKingInCheck(tempBoard, currentPlayer)) {
+            return true;
+          }
+        }
+      }
+    }
+  }
+  return false;
+};
+
+const isValidMoveForPiece = (from, to, board, color) => {
+  const piece = board[from.row][from.col];
+  if (!piece) return false;
+  switch (piece.type) {
+    case "pawn":
+      return isValidPawnMove(from, to, board, color);
+    case "knight":
+      return isValidKnightMove(from, to, board, color);
+    case "bishop":
+      return isValidBishopMove(from, to, board, color);
+    case "rook":
+      return isValidRookMove(from, to, board, color);
+    case "queen":
+      return isValidQueenMove(from, to, board, color);
+    case "king":
+      return isValidKingMove(from, to, board, color);
+    default:
+      return false;
+  }
+};
+
 export default function ChessBoard() {
   const [board, setBoard] = useState(initialBoard());
   const [selectedSquare, setSelectedSquare] = useState(null);
   const [currentPlayer, setCurrentPlayer] = useState("white");
 
+  // const handleSquareClick = (row, col) => {
+  //   console.log(row, col);
+  //   // If no square is selected and the square has a piece of current player's color
+  //   if (!selectedSquare && board[row][col]?.color === currentPlayer) {
+  //     setSelectedSquare({ row, col });
+  //     return;
+  //   }
+
+  //   // If a square is already selected
+  //   if (selectedSquare) {
+  //     // If clicking on the same square, deselect it
+  //     if (selectedSquare.row === row && selectedSquare.col === col) {
+  //       setSelectedSquare(null);
+  //       return;
+  //     }
+
+  //     // If clicking on another piece of the same color, select that piece instead
+  //     if (board[row][col]?.color === currentPlayer) {
+  //       setSelectedSquare({ row, col });
+  //       return;
+  //     }
+
+  //     const from = selectedSquare;
+  //     const to = { row, col };
+
+  //     // Validate move based on piece type
+  //     const piece = board[from.row][from.col];
+  //     let isValidMove = false;
+
+  //     if (piece.type === "pawn") {
+  //       isValidMove = isValidPawnMove(from, to, board, currentPlayer);
+  //     }
+
+  //     if (piece.type === "rook") {
+  //       isValidMove = isValidRookMove(from, to, board, currentPlayer);
+  //     }
+  //     if (piece.type === "knight") {
+  //       isValidMove = isValidKnightMove(from, to, board, currentPlayer);
+  //     }
+  //     if (piece.type === "bishop") {
+  //       isValidMove = isValidBishopMove(from, to, board, currentPlayer);
+  //     }
+  //     if (piece.type === "king") {
+  //       isValidMove = isValidKingMove(from, to, board, currentPlayer);
+  //     }
+  //     if (piece.type === "queen") {
+  //       isValidMove = isValidQueenMove(from, to, board, currentPlayer);
+  //     }
+
+  //     // Add validation for other pieces here
+
+  //     if (isValidMove) {
+  //       // Move the piece
+  //       const newBoard = [...board.map((row) => [...row])];
+  //       newBoard[to.row][to.col] = newBoard[from.row][from.col];
+  //       newBoard[from.row][from.col] = null;
+  //       setBoard(newBoard);
+  //       setSelectedSquare(null);
+  //       setCurrentPlayer(currentPlayer === "white" ? "black" : "white");
+  //     }
+  //   }
+  // };
   const handleSquareClick = (row, col) => {
-    console.log(row, col);
-    // If no square is selected and the square has a piece of current player's color
     if (!selectedSquare && board[row][col]?.color === currentPlayer) {
       setSelectedSquare({ row, col });
       return;
     }
 
-    // If a square is already selected
     if (selectedSquare) {
-      // If clicking on the same square, deselect it
       if (selectedSquare.row === row && selectedSquare.col === col) {
         setSelectedSquare(null);
         return;
       }
 
-      // If clicking on another piece of the same color, select that piece instead
       if (board[row][col]?.color === currentPlayer) {
         setSelectedSquare({ row, col });
         return;
@@ -241,41 +508,56 @@ export default function ChessBoard() {
 
       const from = selectedSquare;
       const to = { row, col };
-
-      // Validate move based on piece type
       const piece = board[from.row][from.col];
       let isValidMove = false;
 
-      if (piece.type === "pawn") {
-        isValidMove = isValidPawnMove(from, to, board, currentPlayer);
+      switch (piece.type) {
+        case "pawn":
+          isValidMove = isValidPawnMove(from, to, board, currentPlayer);
+          break;
+        case "rook":
+          isValidMove = isValidRookMove(from, to, board, currentPlayer);
+          break;
+        case "knight":
+          isValidMove = isValidKnightMove(from, to, board, currentPlayer);
+          break;
+        case "bishop":
+          isValidMove = isValidBishopMove(from, to, board, currentPlayer);
+          break;
+        case "king":
+          isValidMove = isValidKingMove(from, to, board, currentPlayer);
+          break;
+        case "queen":
+          isValidMove = isValidQueenMove(from, to, board, currentPlayer);
+          break;
+        default:
+          break;
       }
-
-      if (piece.type === "rook") {
-        isValidMove = isValidRookMove(from, to, board, currentPlayer);
-      }
-      if (piece.type === "knight") {
-        isValidMove = isValidKnightMove(from, to, board, currentPlayer);
-      }
-      if (piece.type === "bishop") {
-        isValidMove = isValidBishopMove(from, to, board, currentPlayer);
-      }
-      if (piece.type === "king") {
-        isValidMove = isValidKingMove(from, to, board, currentPlayer);
-      }
-      if (piece.type === "queen") {
-        isValidMove = isValidQueenMove(from, to, board, currentPlayer);
-      }
-
-      // Add validation for other pieces here
 
       if (isValidMove) {
-        // Move the piece
         const newBoard = [...board.map((row) => [...row])];
         newBoard[to.row][to.col] = newBoard[from.row][from.col];
         newBoard[from.row][from.col] = null;
+
+        // Check if move leaves current player's king in check
+        if (isKingInCheck(newBoard, currentPlayer)) {
+          alert("Cannot move into check!");
+          return;
+        }
+
         setBoard(newBoard);
         setSelectedSquare(null);
-        setCurrentPlayer(currentPlayer === "white" ? "black" : "white");
+
+        // Check opponent's status
+        const opponent = currentPlayer === "white" ? "black" : "white";
+        if (isKingInCheck(newBoard, opponent)) {
+          alert("Check!");
+          if (isCheckmate(newBoard, opponent)) {
+            alert("Checkmate!");
+          }
+        }
+
+        setCurrentPlayer(opponent);
       }
     }
   };
