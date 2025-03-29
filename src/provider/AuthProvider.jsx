@@ -1,5 +1,4 @@
 "use client";
-
 import { auth } from "@/lib/firebase.config";
 import {
   createUserWithEmailAndPassword,
@@ -11,11 +10,18 @@ import {
   updateProfile,
 } from "firebase/auth";
 import { createContext, useEffect, useState } from "react";
+import { getDatabase, ref, set } from "firebase/database";
 
 export const AuthContext = createContext();
 export default function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const setData = (path, data) => {
+    const db = getDatabase();
+    const dbRef = ref(db, path);
+    return set(dbRef, data);
+  };
 
   // register user
   const registerUser = (email, password) => {
@@ -66,6 +72,7 @@ export default function AuthProvider({ children }) {
     googleSignIn,
     loading,
     setLoading,
+    // postData,
   };
 
   return (
