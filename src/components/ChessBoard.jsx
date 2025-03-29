@@ -1,14 +1,14 @@
-'use client'; // Mark as client component
-
+'use client';
 import { useState } from 'react';
 import ChessSquare from './ChessSquare';
+import { getValidMoves } from '@/lib/chessRules';
 
 
 
-//  initialboard 
+
+// 
 const initialBoard = () => {
   const board = Array(8).fill().map(() => Array(8).fill(null));
-  console.log(board);
   
   // Set up pawns
   for (let i = 0; i < 8; i++) {
@@ -19,7 +19,7 @@ const initialBoard = () => {
   // Set up other pieces
   const pieces = [
     ['rook', 'knight', 'bishop', 'queen', 'king', 'bishop', 'knight', 'rook'],
-    ['rook', 'knight', 'bishop', 'king', 'queen', 'bishop', 'knight', 'rook'] // Corrected queen/king positions
+    ['rook', 'knight', 'bishop', 'king', 'queen', 'bishop', 'knight', 'rook']
   ];
   
   for (let i = 0; i < 8; i++) {
@@ -33,12 +33,14 @@ const initialBoard = () => {
 export default function ChessBoard() {
   const [board, setBoard] = useState(initialBoard());
   const [selectedSquare, setSelectedSquare] = useState(null);
+  const [validMoves, setValidMoves] = useState([]);
   const [currentPlayer, setCurrentPlayer] = useState('white');
 
   const handleSquareClick = (row, col) => {
     // If no square is selected and the square has a piece of current player's color
     if (!selectedSquare && board[row][col]?.color === currentPlayer) {
       setSelectedSquare({ row, col });
+      setValidMoves(getValidMoves(board, board[row][col], row, col));
       return;
     }
     
@@ -47,22 +49,33 @@ export default function ChessBoard() {
       // If clicking on the same square, deselect it
       if (selectedSquare.row === row && selectedSquare.col === col) {
         setSelectedSquare(null);
+        setValidMoves([]);
         return;
       }
       
-      // If clicking on another piece of the same color, select that piece instead
-      if (board[row][col]?.color === currentPlayer) {
+      // Check if the move is valid
+      const isValidMove = validMoves.some(move => move.row === row && move.col === col);
+      
+      if (isValidMove) {
+        // Move the piece
+        const newBoard = [...board.map(row => [...row])];
+        newBoard[row][col] = newBoard[selectedSquare.row][selectedSquare.col];
+        newBoard[selectedSquare.row][selectedSquare.col] = null;
+        setBoard(newBoard);
+        
+        // Special case for pawns - mark their first move
+        if (newBoard[row][col].type === 'pawn') {
+          newBoard[row][col].hasMoved = true;
+        }
+        
+        setSelectedSquare(null);
+        setValidMoves([]);
+        setCurrentPlayer(currentPlayer === 'white' ? 'black' : 'white');
+      } else if (board[row][col]?.color === currentPlayer) {
+        // Select a different piece of the same color
         setSelectedSquare({ row, col });
-        return;
+        setValidMoves(getValidMoves(board, board[row][col], row, col));
       }
-      
-      // Move the piece (very basic movement logic - you'll want to expand this)
-      const newBoard = [...board.map(row => [...row])];
-      newBoard[row][col] = newBoard[selectedSquare.row][selectedSquare.col];
-      newBoard[selectedSquare.row][selectedSquare.col] = null;
-      setBoard(newBoard);
-      setSelectedSquare(null);
-      setCurrentPlayer(currentPlayer === 'white' ? 'black' : 'white');
     }
   };
 
@@ -78,6 +91,7 @@ export default function ChessBoard() {
               key={`${rowIndex}-${colIndex}`}
               piece={piece}
               isSelected={selectedSquare?.row === rowIndex && selectedSquare?.col === colIndex}
+              isValidMove={validMoves.some(move => move.row === rowIndex && move.col === colIndex)}
               onClick={() => handleSquareClick(rowIndex, colIndex)}
               isBlack={(rowIndex + colIndex) % 2 === 1}
             />
