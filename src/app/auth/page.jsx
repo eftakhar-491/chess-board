@@ -1,7 +1,7 @@
 "use client";
 import { useContext, useState } from "react";
 import { FcGoogle } from "react-icons/fc";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { AuthContext } from "@/provider/AuthProvider";
 
 export default function AuthForm() {
@@ -19,8 +19,7 @@ export default function AuthForm() {
   // Firebase hooks
 
   if (user) {
-    router.push("/");
-    return null;
+    return redirect("/");
   }
 
   const handleSubmit = async (e) => {

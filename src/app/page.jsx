@@ -5,11 +5,11 @@ import ChessBoard from "@/components/ChessBoard";
 import { AuthContext } from "@/provider/AuthProvider";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { useContext } from "react";
+import { use, useContext } from "react";
 
 export default function Home() {
   const { user, logoutUser } = useContext(AuthContext);
-
+  console.log(user);
   if (!user) {
     redirect("/auth");
   } else {
@@ -24,7 +24,9 @@ export default function Home() {
               <li className="hover:underline cursor-pointer">Play Game</li>{" "}
             </Link>{" "}
             <li
-              onClick={() => logoutUser()}
+              onClick={() => {
+                logoutUser();
+              }}
               className="hover:underline cursor-pointer"
             >
               Signout
