@@ -109,6 +109,7 @@ export default function AuthProvider({ children }) {
     setLoading,
     postData,
     getData,
+    resetEmail,
   };
 
   return (

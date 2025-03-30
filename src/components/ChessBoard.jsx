@@ -1,10 +1,39 @@
 "use client"; // Mark as client component
 
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import ChessSquare from "./ChessSquare";
+import { AuthContext } from "@/provider/AuthProvider";
+import { useParams } from "next/navigation";
 
 //  initialboard
 const initialBoard = () => {
+  // const [board, setBoard] = useState([]);
+  // const { id } = useParams();
+
+  // const { getData, user, resetEmail } = useContext(AuthContext);
+
+  // const x = resetEmail(`${user?.email}`);
+  // const y = resetEmail(`${id.split("%40").join("@")}`);
+
+  // // ---------------
+  // let boardData;
+  // async function xyz(p1, p2) {
+  //   console.log(p1, p2);
+  //   const boardData = await getData(`chess/${p2}_${p1}`);
+  //   console.log("boardData", boardData);
+
+  //   return boardData;
+  // }
+
+  // // useEffect(() => {
+  // //   (async () => {
+  // //     setBoard(await xyz(x, y));
+  // //   })();
+  // // }, [boardData]);
+  // return await xyz(x, y).then((data) => data[0]?.board);
+  // // console.log(boardData);
+  // // console.log(board[0]?.board);
+  // return board[0]?.board;
   if (1) {
     const board = Array(8)
       .fill()
@@ -573,7 +602,7 @@ export default function ChessBoard() {
         </span>
       </div>
       <div className="grid grid-cols-8 border-2 border-gray-800">
-        {board.map((row, rowIndex) =>
+        {board?.map((row, rowIndex) =>
           row.map((piece, colIndex) => (
             <ChessSquare
               key={`${rowIndex}-${colIndex}`}

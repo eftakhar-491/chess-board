@@ -7,19 +7,20 @@ export default function page() {
   const [playerName, setPlayerName] = useState("");
 
   return (
-    <div style={{ textAlign: "center", padding: "20px" }}>
-      <h1>Chess Game</h1>
-      <input
-        value=""
-        onChange={(e) => setPlayerName(e.target.value)}
-        placeholder="email"
-      />
+    <h1 className="text-white">Start Game With Friend !</h1>
+    // <div style={{ textAlign: "center", padding: "20px" }}>
+    //   <h1>Chess Game</h1>
+    //   <input
+    //     value=""
+    //     onChange={(e) => setPlayerName(e.target.value)}
+    //     placeholder="email"
+    //   />
 
-      <button onClick={"hangelCreateGame"} className="cursor-pointer">
-        create game
-      </button>
+    //   <button onClick={"hangelCreateGame"} className="cursor-pointer">
+    //     create game
+    //   </button>
 
-      {/* <ChessBoard /> */}
-    </div>
+    //   {/* <ChessBoard /> */}
+    // </div>
   );
 }
