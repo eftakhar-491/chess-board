@@ -41,6 +41,7 @@ export default function AuthProvider({ children }) {
     }
     return []; // Return an empty array if no data exists
   };
+
   // register user
   function registerUser(email, password) {
     setLoading(true);

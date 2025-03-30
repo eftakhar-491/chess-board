@@ -575,6 +575,7 @@ export default function ChessBoard() {
         }
 
         setBoard(newBoard);
+
         setSelectedSquare(null);
 
         // Check opponent's status
