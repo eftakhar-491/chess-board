@@ -10,7 +10,6 @@ export default function AddFriend() {
     const board = Array(8)
       .fill()
       .map(() => Array(8).fill(null));
-    // console.log(board);
 
     // Set up pawns
     for (let i = 0; i < 8; i++) {

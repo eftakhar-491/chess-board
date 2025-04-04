@@ -22,7 +22,6 @@ export default function AuthProvider({ children }) {
     const dbRef = push(ref(db, path));
     try {
       await set(dbRef, data);
-      console.log("Data posted successfully to:", path); // Add success message
     } catch (error) {
       console.error("Error posting data:", error);
       throw error; // Rethrow the error for further handling if needed
@@ -82,7 +81,7 @@ export default function AuthProvider({ children }) {
           const p = resetEmail(currentUser?.email);
 
           const userData = await getData(`users/${p}`);
-          console.log(userData);
+
           if (userData?.length === 0) {
             postData(`users/${p}`, {
               name: currentUser.displayName,

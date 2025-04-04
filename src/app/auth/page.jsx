@@ -11,7 +11,6 @@ export default function AuthForm() {
   const [error, setError] = useState("");
   const { user, registerUser, loginUser, googleSignIn, loading } =
     useContext(AuthContext);
-  console.log(user);
 
   // for navigate
   const router = useRouter();
@@ -32,7 +31,7 @@ export default function AuthForm() {
         alert("register sucessfully");
       } else {
         const { user } = await loginUser(email, password);
-        console.log(user);
+
         alert("login sucessfully");
       }
     } catch (err) {
@@ -43,7 +42,7 @@ export default function AuthForm() {
   const handleGoogleSignIn = async () => {
     try {
       const { user } = await googleSignIn();
-      console.log(user);
+
       alert("google sign in successfully");
     } catch (err) {
       setError(err.message);

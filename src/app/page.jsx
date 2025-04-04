@@ -9,7 +9,7 @@ import { use, useContext } from "react";
 
 export default function Home() {
   const { user, logoutUser } = useContext(AuthContext);
-  console.log(user);
+
   if (!user) {
     redirect("/auth");
   } else {

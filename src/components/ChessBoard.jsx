@@ -24,6 +24,9 @@ const initialBoard = () => {
 
   //   return boardData;
   // }
+  //  xyz (x,y).then((data) => {
+  //   console.log(data)
+  //  })
 
   // // useEffect(() => {
   // //   (async () => {
@@ -371,7 +374,6 @@ const isCheckmate = (board, currentPlayer) => {
   return true;
 };
 
-// Helper functions
 const getAttackPath = (kingPos, attackerPos) => {
   const path = [];
   const rowStep = Math.sign(attackerPos.row - kingPos.row);
@@ -456,68 +458,6 @@ export default function ChessBoard() {
   const [selectedSquare, setSelectedSquare] = useState(null);
   const [currentPlayer, setCurrentPlayer] = useState("white");
 
-  // const handleSquareClick = (row, col) => {
-  //   console.log(row, col);
-  //   // If no square is selected and the square has a piece of current player's color
-  //   if (!selectedSquare && board[row][col]?.color === currentPlayer) {
-  //     setSelectedSquare({ row, col });
-  //     return;
-  //   }
-
-  //   // If a square is already selected
-  //   if (selectedSquare) {
-  //     // If clicking on the same square, deselect it
-  //     if (selectedSquare.row === row && selectedSquare.col === col) {
-  //       setSelectedSquare(null);
-  //       return;
-  //     }
-
-  //     // If clicking on another piece of the same color, select that piece instead
-  //     if (board[row][col]?.color === currentPlayer) {
-  //       setSelectedSquare({ row, col });
-  //       return;
-  //     }
-
-  //     const from = selectedSquare;
-  //     const to = { row, col };
-
-  //     // Validate move based on piece type
-  //     const piece = board[from.row][from.col];
-  //     let isValidMove = false;
-
-  //     if (piece.type === "pawn") {
-  //       isValidMove = isValidPawnMove(from, to, board, currentPlayer);
-  //     }
-
-  //     if (piece.type === "rook") {
-  //       isValidMove = isValidRookMove(from, to, board, currentPlayer);
-  //     }
-  //     if (piece.type === "knight") {
-  //       isValidMove = isValidKnightMove(from, to, board, currentPlayer);
-  //     }
-  //     if (piece.type === "bishop") {
-  //       isValidMove = isValidBishopMove(from, to, board, currentPlayer);
-  //     }
-  //     if (piece.type === "king") {
-  //       isValidMove = isValidKingMove(from, to, board, currentPlayer);
-  //     }
-  //     if (piece.type === "queen") {
-  //       isValidMove = isValidQueenMove(from, to, board, currentPlayer);
-  //     }
-
-  //     // Add validation for other pieces here
-
-  //     if (isValidMove) {
-  //       // Move the piece
-  //       const newBoard = [...board.map((row) => [...row])];
-  //       newBoard[to.row][to.col] = newBoard[from.row][from.col];
-  //       newBoard[from.row][from.col] = null;
-  //       setBoard(newBoard);
-  //       setSelectedSquare(null);
-  //       setCurrentPlayer(currentPlayer === "white" ? "black" : "white");
-  //     }
-  //   }
-  // };
   const handleSquareClick = (row, col) => {
     if (!selectedSquare && board[row][col]?.color === currentPlayer) {
       setSelectedSquare({ row, col });
