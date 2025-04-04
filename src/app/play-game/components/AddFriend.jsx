@@ -9,7 +9,7 @@ export default function AddFriend() {
     e.preventDefault();
     const board = Array(8)
       .fill()
-      .map(() => Array(8).fill(null));
+      .map(() => Array(8).fill(0));
 
     // Set up pawns
     for (let i = 0; i < 8; i++) {
@@ -29,8 +29,8 @@ export default function AddFriend() {
       board[7][i] = { type: pieces[1][i], color: "white" };
     }
 
-    const x = resetEmail(`${e.target.email.value}_${user?.email}`);
-
+    const x = resetEmail(`${e.target.email.value}_${user?.email}ADMIN`);
+    console.log(board);
     postData(`chess/${x}`, {
       board: board,
       currentPlayer: "white",

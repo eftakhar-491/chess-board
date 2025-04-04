@@ -17,7 +17,7 @@ export default function FriendList() {
           const p1 = item?.id.split("_")[1];
           const p2 = item?.id.split("_")[0];
 
-          if (pureString === p1) {
+          if (pureString + "ADMIN" === p1) {
             setFriends((p) => [...p, p2]);
           } else if (pureString === p2) {
             setFriends((p) => [...p, p1]);
@@ -25,8 +25,8 @@ export default function FriendList() {
         });
       }
     });
-  }, []);
-  console.log(friends);
+  }, [user]);
+
   return (
     <div>
       <h2 className="text-lg font-bold mb-2">Friends List</h2>

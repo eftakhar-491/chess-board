@@ -23,7 +23,7 @@ export default function AuthProvider({ children }) {
     try {
       await set(dbRef, data);
     } catch (error) {
-      console.error("Error posting data:", error);
+      // console.error("Error posting data:", error);
       throw error; // Rethrow the error for further handling if needed
     }
   };

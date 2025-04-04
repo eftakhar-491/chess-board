@@ -4,17 +4,20 @@ import { useContext, useEffect, useState } from "react";
 import ChessSquare from "./ChessSquare";
 import { AuthContext } from "@/provider/AuthProvider";
 import { useParams } from "next/navigation";
-
+import { getDatabase, ref, onValue, remove, set } from "firebase/database";
 //  initialboard
-const initialBoard = () => {
+const initialBoard = async () => {
   // const [board, setBoard] = useState([]);
-  // const { id } = useParams();
+  const { id } = useParams();
 
-  // const { getData, user, resetEmail } = useContext(AuthContext);
+  const { getData, user, resetEmail } = useContext(AuthContext);
 
-  // const x = resetEmail(`${user?.email}`);
-  // const y = resetEmail(`${id.split("%40").join("@")}`);
+  const x = resetEmail(`${user?.email}`);
+  const y = resetEmail(`${id.split("%40").join("@")}`);
+  const boardData = await getData(`chess/${y}_${x}`);
+  // console.log("boardData", boardData);
 
+  return boardData;
   // // ---------------
   // let boardData;
   // async function xyz(p1, p2) {
@@ -37,33 +40,33 @@ const initialBoard = () => {
   // // console.log(boardData);
   // // console.log(board[0]?.board);
   // return board[0]?.board;
-  if (1) {
-    const board = Array(8)
-      .fill()
-      .map(() => Array(8).fill(null));
-    // console.log(board);
+  // if (1) {
+  //   const board = Array(8)
+  //     .fill()
+  //     .map(() => Array(8).fill(null));
+  //   // console.log(board);
 
-    // Set up pawns
-    for (let i = 0; i < 8; i++) {
-      board[1][i] = { type: "pawn", color: "black" };
-      board[6][i] = { type: "pawn", color: "white" };
-    }
+  //   // Set up pawns
+  //   for (let i = 0; i < 8; i++) {
+  //     board[1][i] = { type: "pawn", color: "black" };
+  //     board[6][i] = { type: "pawn", color: "white" };
+  //   }
 
-    // Set up other pieces
-    const pieces = [
-      ["rook", "knight", "bishop", "queen", "king", "bishop", "knight", "rook"],
+  //   // Set up other pieces
+  //   const pieces = [
+  //     ["rook", "knight", "bishop", "queen", "king", "bishop", "knight", "rook"],
 
-      ["rook", "knight", "bishop", "king", "queen", "bishop", "knight", "rook"], // Corrected queen/king positions
-    ];
+  //     ["rook", "knight", "bishop", "king", "queen", "bishop", "knight", "rook"], // Corrected queen/king positions
+  //   ];
 
-    for (let i = 0; i < 8; i++) {
-      board[0][i] = { type: pieces[0][i], color: "black" };
-      board[7][i] = { type: pieces[1][i], color: "white" };
-    }
+  //   for (let i = 0; i < 8; i++) {
+  //     board[0][i] = { type: pieces[0][i], color: "black" };
+  //     board[7][i] = { type: pieces[1][i], color: "white" };
+  //   }
 
-    return board;
-  } else {
-  }
+  //   return board;
+  // } else {
+  // }
 };
 
 const isValidPawnMove = (from, to, board, currentPlayer) => {
@@ -454,9 +457,86 @@ const isValidMoveForPiece = (from, to, board, color) => {
 };
 
 export default function ChessBoard() {
-  const [board, setBoard] = useState(initialBoard());
+  const { id } = useParams(); //mynser email set korte hobe
+
+  const [board, setBoard] = useState([]);
   const [selectedSquare, setSelectedSquare] = useState(null);
   const [currentPlayer, setCurrentPlayer] = useState("white");
+  const { getData, user, resetEmail, postData } = useContext(AuthContext);
+  const xxx = resetEmail(`${user?.email}`);
+  const yyy = resetEmail(id.split("%40").join("@"));
+  console.log(yyy);
+  let x, y;
+  if (yyy.slice(-5) === "ADMIN") {
+    y = yyy;
+    x = xxx;
+  } else {
+    y = xxx + "ADMIN";
+    x = yyy;
+  }
+  useEffect(() => {
+    const fetchBoard = async () => {
+      try {
+        // const xxx = resetEmail(`${user?.email}`);
+        // const yyy = resetEmail(id.split("%40").join("@"));
+        // let x, y;
+        // if (yyy.slice(-5) === "ADMIN") {
+        //   y = yyy;
+        //   x = xxx;
+        // } else {
+        //   y = xxx + "ADMIN";
+        //   x = yyy;
+        // }
+
+        const boardData = await getData(`chess/${x}_${y}`);
+        console.log("boardData", boardData);
+        // Update state with boardData here
+
+        const aa = boardData[0]?.board?.map((item) => (item == 0 ? 0 : item));
+        setBoard(aa);
+        setCurrentPlayer(boardData[0]?.currentPlayer);
+        console.log(aa);
+      } catch (error) {
+        console.error("Error fetching board:", error);
+      }
+    };
+    fetchBoard();
+  }, [user]);
+
+  useEffect(() => {
+    // const x = resetEmail(`${user?.email}`);
+    // const y = resetEmail(id.split("%40").join("@"));
+
+    const db = getDatabase(); // Initialize Firebase database
+    const boardRef = ref(db, `chess/${x}_${y}`); // Reference to the board path
+
+    // Listen for changes in the database
+    onValue(boardRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const entries = Object.entries(data).map(([key, value]) => ({
+          id: key,
+          ...value,
+        }));
+        console.log(entries);
+        if (entries.length > 0) {
+          setCurrentPlayer(entries[0]?.currentPlayer);
+          setBoard(entries[0]?.board); // Update the board state with the new data
+        } else {
+          console.warn("No entries found in the data.");
+        }
+      } else {
+        console.warn("Snapshot data is undefined.");
+      }
+    });
+
+    // Fetch initial board data
+
+    // Cleanup listener on unmount
+    return () => {
+      // You may need to detach the listener if necessary
+    };
+  }, [user, x, y]);
 
   const handleSquareClick = (row, col) => {
     if (!selectedSquare && board[row][col]?.color === currentPlayer) {
@@ -506,7 +586,8 @@ export default function ChessBoard() {
       if (isValidMove) {
         const newBoard = [...board.map((row) => [...row])];
         newBoard[to.row][to.col] = newBoard[from.row][from.col];
-        newBoard[from.row][from.col] = null;
+        // newBoard[from.row][from.col] = null;
+        newBoard[from.row][from.col] = 0;
 
         // Check if move leaves current player's king in check
         if (isKingInCheck(newBoard, currentPlayer)) {
@@ -514,7 +595,7 @@ export default function ChessBoard() {
           return;
         }
 
-        setBoard(newBoard);
+        // setBoard(newBoard);
 
         setSelectedSquare(null);
 
@@ -527,11 +608,22 @@ export default function ChessBoard() {
           }
         }
 
-        setCurrentPlayer(opponent);
+        // setCurrentPlayer(opponent);
+
+        const x = resetEmail(`${user?.email}`);
+        const y = resetEmail(id.split("%40").join("@"));
+        const db = getDatabase();
+        const dataRef = ref(db, `chess/${x}_${y}`);
+        remove(dataRef);
+
+        postData(`chess/${x}_${y}`, {
+          board: newBoard,
+          currentPlayer: opponent,
+        });
       }
     }
   };
-  console.log(board);
+  // console.log(board);
   return (
     <div className="flex flex-col items-center">
       <div className="text-xl font-bold mb-4">
@@ -547,7 +639,7 @@ export default function ChessBoard() {
           row.map((piece, colIndex) => (
             <ChessSquare
               key={`${rowIndex}-${colIndex}`}
-              piece={piece}
+              piece={piece == 0 ? null : piece}
               isSelected={
                 selectedSquare?.row === rowIndex &&
                 selectedSquare?.col === colIndex
