@@ -4,7 +4,15 @@ import { useContext, useEffect, useState } from "react";
 import ChessSquare from "./ChessSquare";
 import { AuthContext } from "@/provider/AuthProvider";
 import { useParams } from "next/navigation";
-import { getDatabase, ref, onValue, remove, set } from "firebase/database";
+import {
+  getDatabase,
+  ref,
+  onValue,
+  remove,
+  set,
+  update,
+  get,
+} from "firebase/database";
 //  initialboard
 const initialBoard = async () => {
   // const [board, setBoard] = useState([]);
@@ -488,14 +496,19 @@ export default function ChessBoard() {
         //   x = yyy;
         // }
 
-        const boardData = await getData(`chess/${x}_${y}`);
-        console.log("boardData", boardData);
+        // const boardData = await getData(`chess/${x}_${y}`);
+        // console.log("boardData", boardData);
         // Update state with boardData here
-
-        const aa = boardData[0]?.board?.map((item) => (item == 0 ? 0 : item));
-        setBoard(aa);
-        setCurrentPlayer(boardData[0]?.currentPlayer);
-        console.log(aa);
+        const db = getDatabase();
+        const dbRef = await ref(db, `chess/${x}_${y}`);
+        const snap = await get(dbRef);
+        // console.log(snap.val());
+        const boardData = snap.val();
+        //-------------------------------
+        // const aa = boardData[0]?.board?.map((item) => (item == 0 ? 0 : item));
+        setBoard(boardData?.board);
+        setCurrentPlayer(boardData?.currentPlayer);
+        // console.log(aa);
       } catch (error) {
         console.error("Error fetching board:", error);
       }
@@ -513,18 +526,10 @@ export default function ChessBoard() {
     // Listen for changes in the database
     onValue(boardRef, (snapshot) => {
       const data = snapshot.val();
+      console.log("onvaaaaalllluuu", data);
       if (data) {
-        const entries = Object.entries(data).map(([key, value]) => ({
-          id: key,
-          ...value,
-        }));
-        console.log(entries);
-        if (entries.length > 0) {
-          setCurrentPlayer(entries[0]?.currentPlayer);
-          setBoard(entries[0]?.board); // Update the board state with the new data
-        } else {
-          console.warn("No entries found in the data.");
-        }
+        setCurrentPlayer(data?.currentPlayer);
+        setBoard(data?.board); // Update the board state with the new data
       } else {
         console.warn("Snapshot data is undefined.");
       }
@@ -539,6 +544,15 @@ export default function ChessBoard() {
   }, [user, x, y]);
 
   const handleSquareClick = (row, col) => {
+    if (
+      (currentPlayer === "white" && xxx + "ADMIN" !== y) ||
+      (currentPlayer === "black" && xxx + "ADMIN" === y)
+    ) {
+      console.log(
+        "Invalid move: Admin can only play as white and other player as black."
+      );
+      return;
+    }
     if (!selectedSquare && board[row][col]?.color === currentPlayer) {
       setSelectedSquare({ row, col });
       return;
@@ -610,13 +624,11 @@ export default function ChessBoard() {
 
         // setCurrentPlayer(opponent);
 
-        const x = resetEmail(`${user?.email}`);
-        const y = resetEmail(id.split("%40").join("@"));
         const db = getDatabase();
         const dataRef = ref(db, `chess/${x}_${y}`);
-        remove(dataRef);
+        // remove(dataRef);
 
-        postData(`chess/${x}_${y}`, {
+        update(dataRef, {
           board: newBoard,
           currentPlayer: opponent,
         });

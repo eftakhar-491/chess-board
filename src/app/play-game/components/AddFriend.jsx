@@ -1,5 +1,6 @@
 "use client";
 import { AuthContext } from "@/provider/AuthProvider";
+import { getDatabase, ref, set, update } from "firebase/database";
 import React, { useContext } from "react";
 
 export default function AddFriend() {
@@ -31,7 +32,9 @@ export default function AddFriend() {
 
     const x = resetEmail(`${e.target.email.value}_${user?.email}ADMIN`);
     console.log(board);
-    postData(`chess/${x}`, {
+    const db = getDatabase();
+    const dataREF = ref(db, `chess/${x}`);
+    update(dataREF, {
       board: board,
       currentPlayer: "white",
     });
