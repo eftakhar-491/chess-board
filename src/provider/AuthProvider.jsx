@@ -10,24 +10,42 @@ import {
   updateProfile,
 } from "firebase/auth";
 import { createContext, useEffect, useState } from "react";
-import { getDatabase, ref, set } from "firebase/database";
+import { get, getDatabase, push, ref, set } from "firebase/database";
 
 export const AuthContext = createContext();
 export default function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const setData = (path, data) => {
+  const postData = async (path, data) => {
     const db = getDatabase();
-    const dbRef = ref(db, path);
-    return set(dbRef, data);
+    const dbRef = push(ref(db, path));
+    try {
+      await set(dbRef, data);
+    } catch (error) {
+      // console.error("Error posting data:", error);
+      throw error; // Rethrow the error for further handling if needed
+    }
+  };
+  const getData = async (path) => {
+    const db = getDatabase();
+    const dbRef = await ref(db, path);
+    const snap = await get(dbRef);
+
+    if (snap.exists()) {
+      return Object.entries(snap.val()).map(([key, value]) => ({
+        id: key,
+        ...value,
+      }));
+    }
+    return []; // Return an empty array if no data exists
   };
 
   // register user
-  const registerUser = (email, password) => {
+  function registerUser(email, password) {
     setLoading(true);
     return createUserWithEmailAndPassword(auth, email, password);
-  };
+  }
 
   //   login existing user
   const loginUser = (email, password) => {
@@ -38,6 +56,7 @@ export default function AuthProvider({ children }) {
   //   logout user
   const logoutUser = () => {
     setLoading(true);
+    setUser(null);
     return signOut(auth);
   };
   // update user functionality for using in register page
@@ -50,11 +69,27 @@ export default function AuthProvider({ children }) {
   const googleSignIn = () => {
     return signInWithPopup(auth, googleProvider);
   };
-
+  const resetEmail = (email) => {
+    return email.replace(/[.#$[\]]/g, "");
+  };
   // firebase observer
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+        if (currentUser?.email) {
+          const p = resetEmail(currentUser?.email);
+
+          const userData = await getData(`users/${p}`);
+
+          if (userData?.length === 0) {
+            postData(`users/${p}`, {
+              name: currentUser.displayName,
+              email: currentUser.email,
+            });
+          }
+        }
+      }
       setLoading(false);
     });
     return () => {
@@ -72,7 +107,9 @@ export default function AuthProvider({ children }) {
     googleSignIn,
     loading,
     setLoading,
-    // postData,
+    postData,
+    getData,
+    resetEmail,
   };
 
   return (

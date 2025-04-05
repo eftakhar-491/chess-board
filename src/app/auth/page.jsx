@@ -1,42 +1,38 @@
-'use client';
-import { useContext, useState } from 'react';
-import { FcGoogle } from 'react-icons/fc';
-import { useRouter } from 'next/navigation';
-import { AuthContext } from '@/provider/AuthProvider';
+"use client";
+import { useContext, useState } from "react";
+import { FcGoogle } from "react-icons/fc";
+import { redirect, useRouter } from "next/navigation";
+import { AuthContext } from "@/provider/AuthProvider";
 
 export default function AuthForm() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
-  const [error, setError] = useState('');
-  const {user, registerUser , loginUser, googleSignIn, loading} = useContext(AuthContext);
-  console.log(user);
+  const [error, setError] = useState("");
+  const { user, registerUser, loginUser, googleSignIn, loading } =
+    useContext(AuthContext);
 
-   
   // for navigate
   const router = useRouter();
 
   // Firebase hooks
 
- 
-
   if (user) {
-    router.push('/');
-    return null;
+    return redirect("/");
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    // 
+    setError("");
+    //
     try {
       if (isRegistering) {
         await registerUser(email, password);
-        alert('register sucessfully')
+        alert("register sucessfully");
       } else {
-        const {user} = await loginUser(email, password);
-        console.log(user);
-        alert('login sucessfully')
+        const { user } = await loginUser(email, password);
+
+        alert("login sucessfully");
       }
     } catch (err) {
       setError(err.message);
@@ -45,9 +41,9 @@ export default function AuthForm() {
 
   const handleGoogleSignIn = async () => {
     try {
-      const {user} = await googleSignIn();
-      console.log(user);
-       alert("google sign in successfully")
+      const { user } = await googleSignIn();
+
+      alert("google sign in successfully");
     } catch (err) {
       setError(err.message);
     }
@@ -61,7 +57,7 @@ export default function AuthForm() {
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
         <div className="text-center">
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            {isRegistering ? 'Create your account' : 'Sign in to your account'}
+            {isRegistering ? "Create your account" : "Sign in to your account"}
           </h2>
         </div>
 
@@ -75,7 +71,7 @@ export default function AuthForm() {
           </div>
         )}
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        {/* <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
               <label htmlFor="email" className="sr-only">Email address</label>
@@ -127,16 +123,18 @@ export default function AuthForm() {
               )}
             </button>
           </div>
-        </form>
+        </form> */}
 
         <div className="mt-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-300"></div>
             </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Or continue with</span>
-            </div>
+            {/* <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">
+                Or continue with
+              </span>
+            </div> */}
           </div>
 
           <div className="mt-6 grid grid-cols-1 gap-3">
@@ -156,7 +154,9 @@ export default function AuthForm() {
             onClick={() => setIsRegistering(!isRegistering)}
             className="font-medium text-blue-600 hover:text-blue-500"
           >
-            {isRegistering ? 'Already have an account? Sign in' : 'Need an account? Register'}
+            {isRegistering
+              ? "Already have an account? Sign in"
+              : "Need an account? Register"}
           </button>
         </div>
       </div>

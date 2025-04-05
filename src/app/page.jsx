@@ -1,33 +1,39 @@
-
 // app/page.js
-'use client';
+"use client";
 
 import ChessBoard from "@/components/ChessBoard";
+import { AuthContext } from "@/provider/AuthProvider";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { use, useContext } from "react";
 
 export default function Home() {
+  const { user, logoutUser } = useContext(AuthContext);
 
-  return (
-
-    <div style={{ textAlign: 'center', padding: '20px' }}>
-      <h1>Chess Game</h1>
-      <input
-        value=""
-        // onChange={(e) => setPlayerName(e.target.value)}
-        placeholder="Your name"
-      />
-      <button>
-        Create Game
-      </button>
-      <input
-        value=""
-        // onChange={(e) => setGameId(e.target.value)}
-        placeholder="Enter Game ID"
-      />
-      <button className='cursor-pointer'>
-        Join Game
-      </button>
-
-      <ChessBoard/>
-    </div>
-  );
+  if (!user) {
+    redirect("/auth");
+  } else {
+    return (
+      <>
+        <div className="flex items-center justify-center w-screen h-screen">
+          <ul className="flex gap-6 text-xl font-bold text-white">
+            <Link href="/">
+              <li className="hover:underline cursor-pointer">Home</li>
+            </Link>{" "}
+            <Link href="/play-game">
+              <li className="hover:underline cursor-pointer">Play Game</li>{" "}
+            </Link>{" "}
+            <li
+              onClick={() => {
+                logoutUser();
+              }}
+              className="hover:underline cursor-pointer"
+            >
+              Signout
+            </li>
+          </ul>
+        </div>
+      </>
+    );
+  }
 }
