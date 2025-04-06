@@ -11,18 +11,20 @@ export default function FriendList() {
   useEffect(() => {
     getData("chess").then((data) => {
       if (data && user) {
-        data.map((item) => {
+        const uniqueFriends = new Set();
+        data.forEach((item) => {
           const pureString = resetEmail(user?.email);
 
           const p1 = item?.id.split("_")[1];
           const p2 = item?.id.split("_")[0];
 
           if (pureString + "ADMIN" === p1) {
-            setFriends((p) => [...p, p2]);
+            uniqueFriends.add(p2);
           } else if (pureString === p2) {
-            setFriends((p) => [...p, p1]);
+            uniqueFriends.add(p1);
           }
         });
+        setFriends(Array.from(uniqueFriends));
       }
     });
   }, [user]);
