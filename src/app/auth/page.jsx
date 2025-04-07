@@ -9,9 +9,9 @@ export default function AuthForm() {
   const [password, setPassword] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState("");
-  const { user, registerUser, loginUser, googleSignIn, loading } =
+  const { user, registerUser, loginUser, googleSignIn, loading, setLoading } =
     useContext(AuthContext);
-
+   
   // for navigate
   const router = useRouter();
 
@@ -21,6 +21,7 @@ export default function AuthForm() {
     return redirect("/");
   }
 
+  // register and login with credientials
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -31,18 +32,20 @@ export default function AuthForm() {
         alert("register sucessfully");
       } else {
         const { user } = await loginUser(email, password);
-
         alert("login sucessfully");
       }
     } catch (err) {
       setError(err.message);
     }
+    finally{
+      setLoading(false)
+    }
   };
-
+  
+  // google login
   const handleGoogleSignIn = async () => {
     try {
       const { user } = await googleSignIn();
-
       alert("google sign in successfully");
     } catch (err) {
       setError(err.message);
@@ -51,16 +54,17 @@ export default function AuthForm() {
 
   // Combine all possible errors
   const authError = "";
-
+  
+  // 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
         <div className="text-center">
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            {isRegistering ? "Create your account" : "Sign in to your account"}
+            {isRegistering ? "Create your account" : "Sign in for play game"}
           </h2>
         </div>
-
+        {/* error showing */}
         {(error || authError) && (
           <div className="bg-red-50 border-l-4 border-red-500 p-4">
             <div className="flex">
@@ -70,8 +74,10 @@ export default function AuthForm() {
             </div>
           </div>
         )}
+        
 
-        {/* <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        {/* form */}
+       <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
               <label htmlFor="email" className="sr-only">Email address</label>
@@ -108,7 +114,7 @@ export default function AuthForm() {
             <button
               type="submit"
               disabled={loading}
-              className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+              className={`cursor-pointer group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
             >
               {loading ? (
                 <span className="flex items-center">
@@ -123,25 +129,25 @@ export default function AuthForm() {
               )}
             </button>
           </div>
-        </form> */}
+        </form> 
 
         <div className="mt-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-300"></div>
             </div>
-            {/* <div className="relative flex justify-center text-sm">
+            <div className="relative flex justify-center text-sm">
               <span className="px-2 bg-white text-gray-500">
                 Or continue with
               </span>
-            </div> */}
+            </div>
           </div>
 
           <div className="mt-6 grid grid-cols-1 gap-3">
             <button
               onClick={handleGoogleSignIn}
               disabled={loading}
-              className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="cursor-pointer w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               <FcGoogle className="h-5 w-5 mr-2" />
               Sign in with Google
@@ -152,7 +158,7 @@ export default function AuthForm() {
         <div className="text-center text-sm text-gray-600">
           <button
             onClick={() => setIsRegistering(!isRegistering)}
-            className="font-medium text-blue-600 hover:text-blue-500"
+            className="cursor-pointer font-medium text-blue-600 hover:text-blue-500"
           >
             {isRegistering
               ? "Already have an account? Sign in"

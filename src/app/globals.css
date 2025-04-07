@@ -21,3 +21,10 @@
 body {
   background-color: #171717;
 }
+
+.homeBg-image{
+  background-image:url("/image/image-1.jpg");
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}

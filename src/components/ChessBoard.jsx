@@ -646,7 +646,7 @@ export default function ChessBoard() {
           {currentPlayer}
         </span>
       </div>
-      <div className="grid grid-cols-8 border-2 border-gray-800">
+      <div className="grid grid-cols-8">
         {board?.map((row, rowIndex) =>
           row.map((piece, colIndex) => (
             <ChessSquare

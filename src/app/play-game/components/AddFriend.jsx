@@ -1,10 +1,12 @@
 "use client";
 import { AuthContext } from "@/provider/AuthProvider";
 import { getDatabase, ref, set, update } from "firebase/database";
+import { redirect } from "next/navigation";
+
 import React, { useContext } from "react";
 
 export default function AddFriend() {
-  const { postData, user, resetEmail } = useContext(AuthContext);
+  const { postData, user, resetEmail, logoutUser } = useContext(AuthContext);
 
   const handelAddFriendClick = (e) => {
     e.preventDefault();
@@ -39,9 +41,21 @@ export default function AddFriend() {
       currentPlayer: "white",
     });
   };
+
+  // logout
+  const handleLeaveGame = async()=>{
+      await logoutUser();
+      redirect("/auth");
+  }
+
+
+  // 
   return (
     <div className="mb-4">
-      <h2 className="text-lg font-bold mb-2">Add Friend</h2>
+       <div className="flex justify-between items-start">
+          <h2 className="text-2xl font-bold mb-2">Add Friend</h2>
+          <button onClick={handleLeaveGame} className="bg-gradient-to-br from-yellow-400 via-red-500 to-pink-500 px-6 py-2 rounded-full cursor-pointer font-medium ">Leave Game</button>
+       </div>
       <form onSubmit={handelAddFriendClick} className="space-y-2">
         <div>
           <label className="block text-sm font-medium">Email:</label>
@@ -53,9 +67,9 @@ export default function AddFriend() {
         </div>
         <button
           type="submit"
-          className="w-full p-2 bg-blue-500 text-white rounded"
+          className="w-full p-2 bg-blue-500 text-white rounded cursor-pointer"
         >
-          Submit
+          Add
         </button>
       </form>
     </div>
